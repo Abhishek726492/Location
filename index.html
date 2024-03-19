@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Tracking</title>
+</head>
+<body>
+  <div id="fixed-location-display">
+    <p>Fixed Location: Latitude 17.4029, Longitude 78.45348375</p>
+  </div>
+  <div id="user-location-display">
+    <p>Loading user location...</p>
+  </div>
+  <div id="distance-display"></div>
+
+  <script>
+    // Function to calculate distance between two coordinates using Haversine formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // Earth radius in meters
+      const φ1 = lat1 * Math.PI / 180; // Latitude 1 in radians
+      const φ2 = lat2 * Math.PI / 180; // Latitude 2 in radians
+      const Δφ = (lat2 - lat1) * Math.PI / 180; // Difference in latitude in radians
+      const Δλ = (lon2 - lon1) * Math.PI / 180; // Difference in longitude in radians
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      const distance = R * c; // Distance in meters
+      return distance;
+    }
+
+    // Function to update user location display
+    function updateUserLocation(position) {
+      const userLatitude = position.coords.latitude;
+      const userLongitude = position.coords.longitude;
+      document.getElementById('user-location-display').innerHTML = `<p>User Location: Latitude ${userLatitude}, Longitude ${userLongitude}</p>`;
+
+      // Fixed location
+      const fixedLatitude = 17.4029;
+      const fixedLongitude = 78.45348375;
+
+      // Calculate distance between user's location and fixed location
+      const distance = calculateDistance(userLatitude, userLongitude, fixedLatitude, fixedLongitude);
+
+      // Display whether user is within 20 meters of fixed location
+      if (distance <= 20) {
+        document.getElementById('distance-display').innerHTML = '<p>User is within 20 meters of the fixed location.</p>';
+      } else {
+        document.getElementById('distance-display').innerHTML = '<p>User is not within 20 meters of the fixed location.</p>';
+      }
+    }
+
+    // Function to handle errors in retrieving location
+    function errorCallback(error) {
+      console.error('Error getting location:', error);
+      document.getElementById('user-location-display').innerHTML = '<p>Error getting user location. Please ensure GPS is enabled and try again.</p>';
+    }
+
+    // Check if Geolocation API is supported
+    if ('geolocation' in navigator) {
+      // Watch user's location using GPS
+      const watchId = navigator.geolocation.watchPosition(updateUserLocation, errorCallback);
+    } else {
+      document.getElementById('user-location-display').innerHTML = '<p>Geolocation is not supported by your browser.</p>';
+    }
+  </script>
+</body>
+</html>
